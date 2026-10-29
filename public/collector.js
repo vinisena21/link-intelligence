@@ -1,7 +1,6 @@
 // public/collector.js
 // DeepHat Intelligence Collector - Versão Blindada
 
-// --- ESTADO GLOBAL DE COMPORTAMENTO ---
 const behaviorData = {
     scrollDepth: 0,
     mouseMoves: 0,
@@ -10,34 +9,23 @@ const behaviorData = {
     scrollYMax: 0
 };
 
-// --- INICIALIZAÇÃO DE RASTREAMENTO ---
 function initBehaviorTracking() {
     try {
         window.addEventListener('scroll', () => {
-            const totalHeight = document.documentElement.scrollHeight;
+            const totalHeight = document.documentElement.scrollHeight || 1;
             const scrollPosition = window.scrollY;
             behaviorData.scrollYMax = Math.max(behaviorData.scrollYMax, scrollPosition);
             behaviorData.scrollDepth = Math.round((scrollPosition / totalHeight) * 100);
         });
-
-        document.addEventListener('mousemove', () => {
-            behaviorData.mouseMoves++;
-        });
-
-        document.addEventListener('click', () => {
-            behaviorData.clicks++;
-        });
-
-        setInterval(() => {
-            behaviorData.timeOnPage++;
-        }, 1000);
+        document.addEventListener('mousemove', () => { behaviorData.mouseMoves++; });
+        document.addEventListener('click', () => { behaviorData.clicks++; });
+        setInterval(() => { behaviorData.timeOnPage++; }, 1000);
         console.log('[DeepHat] Rastreamento de comportamento iniciado.');
     } catch (e) {
         console.error('[DeepHat] Erro ao iniciar rastreamento:', e);
     }
 }
 
-// --- FINGERPRINTING BÁSICO ---
 function generateCanvasFingerprint() {
     try {
         const canvas = document.createElement('canvas');
@@ -51,7 +39,6 @@ function generateCanvasFingerprint() {
     }
 }
 
-// --- FINGERPRINTING AVANÇADO (Só roda se aceitar cookies) ---
 function collectAdvancedFingerprint() {
     console.log('[DeepHat] Coletando fingerprint avançado...');
     const advancedData = {
@@ -61,7 +48,6 @@ function collectAdvancedFingerprint() {
         touchPoints: navigator.maxTouchPoints || 0
     };
 
-    // WebGL
     try {
         const canvas = document.createElement('canvas');
         const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
@@ -83,12 +69,10 @@ function collectAdvancedFingerprint() {
         advancedData.webgl = { error: e.message };
     }
 
-    // Fontes (Simplificado para evitar bugs de layout)
     const testFonts = ['Arial', 'Helvetica', 'Verdana', 'Tahoma', 'Times New Roman', 'Courier New', 'Georgia', 'Garamond', 'Palatino', 'Impact', 'Comic Sans MS', 'Trebuchet MS', 'Segoe UI', 'Calibri', 'Cambria'];
     const baseFont = 'monospace';
     const baseSize = '72px';
     const testText = 'mmmmmmmmmmlli';
-    
     const testSpan = document.createElement('span');
     testSpan.style.font = `${baseSize} ${baseFont}`;
     testSpan.textContent = testText;
@@ -103,17 +87,14 @@ function collectAdvancedFingerprint() {
     });
     document.body.removeChild(testSpan);
 
-    // Plugins
     if (navigator.plugins) {
         for (let i = 0; i < navigator.plugins.length; i++) {
             advancedData.plugins.push(navigator.plugins[i].name);
         }
     }
-
     return advancedData;
 }
 
-// --- COLETA DE IP E GEO ---
 async function getPublicIP() {
     try {
         const res = await fetch('https://api.ipify.org?format=json');
@@ -133,13 +114,38 @@ async function getIPGeolocation(ip) {
     }
 }
 
-// --- COLETA PRINCIPAL ---
-async function collectDeviceInfo() {
-    const parser = new UAParser();
-    const result = parser.getResult();
+function parseUserAgent() {
+    try {
+        if (typeof UAParser !== 'undefined') {
+            const result = new UAParser().getResult();
+            return {
+                browser: result.browser.name || 'Unknown',
+                browserVersion: result.browser.version || '',
+                os: result.os.name || 'Unknown',
+                osVersion: result.os.version || '',
+                device: result.device.model || 'Desktop',
+                deviceType: result.device.type || 'desktop'
+            };
+        }
+    } catch (e) {
+        console.warn('[DeepHat] UAParser falhou:', e);
+    }
+    // Fallback simples
+    const ua = navigator.userAgent;
+    return {
+        browser: /Chrome/.test(ua) ? 'Chrome' : /Firefox/.test(ua) ? 'Firefox' : /Safari/.test(ua) ? 'Safari' : 'Unknown',
+        browserVersion: '',
+        os: /Windows/.test(ua) ? 'Windows' : /Mac/.test(ua) ? 'Mac OS' : /Android/.test(ua) ? 'Android' : /iPhone|iPad/.test(ua) ? 'iOS' : 'Unknown',
+        osVersion: '',
+        device: 'Desktop',
+        deviceType: /Mobile|Android|iPhone/.test(ua) ? 'mobile' : 'desktop'
+    };
+}
 
+async function collectDeviceInfo() {
     const publicIP = await getPublicIP();
     const ipGeolocation = await getIPGeolocation(publicIP);
+    const parsedUserAgent = parseUserAgent();
 
     const data = {
         timestamp: new Date().toISOString(),
@@ -151,14 +157,7 @@ async function collectDeviceInfo() {
             org: ipGeolocation.org
         },
         userAgent: navigator.userAgent,
-        parsedUserAgent: {
-            browser: result.browser.name,
-            browserVersion: result.browser.version,
-            os: result.os.name,
-            osVersion: result.os.version,
-            device: result.device.model || 'Desktop',
-            deviceType: result.device.type || 'desktop'
-        },
+        parsedUserAgent,
         screen: {
             width: screen.width,
             height: screen.height,
@@ -181,14 +180,15 @@ async function collectDeviceInfo() {
         });
         const result = await res.json();
         console.log('[DeepHat] Coleta enviada:', result);
-        document.getElementById('status').textContent = 'Diagnóstico concluído com sucesso!';
+        const statusEl = document.getElementById('status');
+        if (statusEl) statusEl.textContent = 'Diagnóstico concluído com sucesso!';
     } catch (e) {
         console.error('[DeepHat] Erro ao enviar coleta:', e);
-        document.getElementById('status').textContent = 'Erro no diagnóstico. Tente novamente.';
+        const statusEl = document.getElementById('status');
+        if (statusEl) statusEl.textContent = 'Erro no diagnóstico. Tente novamente.';
     }
 }
 
-// --- CONSENTIMENTO ---
 function setupConsent() {
     const acceptBtn = document.getElementById('accept-cookies');
     const rejectBtn = document.getElementById('reject-cookies');
@@ -196,7 +196,7 @@ function setupConsent() {
 
     if (acceptBtn) {
         acceptBtn.addEventListener('click', async () => {
-            banner.style.display = 'none';
+            if (banner) banner.style.display = 'none';
             const advanced = collectAdvancedFingerprint();
             const data = {
                 timestamp: new Date().toISOString(),
@@ -219,7 +219,7 @@ function setupConsent() {
 
     if (rejectBtn) {
         rejectBtn.addEventListener('click', async () => {
-            banner.style.display = 'none';
+            if (banner) banner.style.display = 'none';
             const data = {
                 timestamp: new Date().toISOString(),
                 consent: false,
@@ -239,15 +239,10 @@ function setupConsent() {
     }
 }
 
-// --- INICIALIZAÇÃO ---
 document.addEventListener('DOMContentLoaded', () => {
     initBehaviorTracking();
     setupConsent();
-
-    // Inicia coleta após 500ms
-    setTimeout(collectDeviceInfo, 500);
-
-    // Exibe banner após 1.5s
+    setTimeout(collectDeviceInfo, 800);
     setTimeout(() => {
         const banner = document.getElementById('cookie-banner');
         if (banner) {
