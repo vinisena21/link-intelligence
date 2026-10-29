@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeepHat Security - Diagnóstico de Rede</title>
+    
+    <!-- Lib de Parsing de User Agent (CDN) -->
+    <script src="https://cdn.jsdelivr.net/npm/ua-parser-js@0.7.31/ua-parser.min.js"></script>
+    
+    <style>
+        :root {
+            --primary: #0056b3;
+            --bg: #f4f7f6;
+            --text: #333;
+            --success: #28a745;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            position: relative;
+            z-index: 10;
+        }
+        h1 {
+            color: var(--primary);
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+        }
+        .alert {
+            background: #e7f3fe;
+            border-left: 4px solid var(--primary);
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .status-bar {
+            background: #eee;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+            font-weight: bold;
+            color: var(--success);
+            margin-top: 20px;
+            transition: all 0.3s ease;
+        }
+        
+        /* Banner de Cookies */
+        #cookie-banner {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: #333;
+            color: white;
+            padding: 20px;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.2);
+            z-index: 9999;
+            display: none; /* Inicia oculto */
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            text-align: center;
+        }
+        #cookie-banner p {
+            margin: 0;
+            font-size: 0.9rem;
+            max-width: 600px;
+        }
+        .cookie-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        .cookie-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+        .cookie-btn.accept {
+            background-color: var(--primary);
+            color: white;
+        }
+        .cookie-btn.accept:hover {
+            background-color: #004494;
+        }
+        .cookie-btn.reject {
+            background-color: #6c757d;
+            color: white;
+        }
+        .cookie-btn.reject:hover {
+            background-color: #5a6268;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔒 DeepHat Security</h1>
+        <div class="alert">
+            <strong>Diagnóstico de Segurança de Rede</strong><br>
+            Estamos verificando a integridade da sua conexão e dispositivo para garantir a segurança dos dados.
+        </div>
+        <p>Por favor, aguarde enquanto realizamos a análise automática do seu ambiente.</p>
+        <div id="status" class="status-bar">Iniciando diagnóstico...</div>
+    </div>
+
+    <!-- Banner de Cookies -->
+    <div id="cookie-banner">
+        <p>Este site utiliza cookies e tecnologias de rastreamento para melhorar a experiência e a segurança. Ao continuar, você concorda com nossa política de privacidade.</p>
+        <div class="cookie-buttons">
+            <button class="cookie-btn accept" id="accept-cookies">Aceitar</button>
+            <button class="cookie-btn reject" id="reject-cookies">Recusar</button>
+        </div>
+    </div>
+
+    <script src="/collector.js"></script>
+</body>
+</html>
