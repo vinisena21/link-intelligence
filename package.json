@@ -1,0 +1,17 @@
+{
+  "name": "link-intelligence",
+  "version": "1.0.0",
+  "description": "Link Intelligence Collector - DeepHat",
+  "main": "server/server.js",
+  "scripts": {
+    "start": "node server/server.js",
+    "dev": "node server/server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "ua-parser-js": "^2.0.10"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
