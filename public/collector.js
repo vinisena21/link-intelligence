@@ -37,6 +37,16 @@ function initBehaviorTracking() {
     }
 }
 
-// Placeholder - full collector will be loaded from original; this is a minimal stub if needed.
-// The full original collector.js is longer and includes IP fetch, geolocation, canvas, webgl, fonts, etc.
-console.log('[DeepHat] Collector loaded (stub for deploy - full version in original zip)');
+// --- FINGERPRINTING BÁSICO ---
+function generateCanvasFingerprint() {
+    try {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        ctx.textBaseline = 'top';
+        ctx.font = '14px "Arial"';
+        ctx.fillText('DeepHat-FP-2024', 2, 2);
+        return canvas.toDataURL().length;
+    } catch (e) {
+        return 0;
+    }
+}
